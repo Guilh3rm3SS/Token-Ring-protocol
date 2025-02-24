@@ -1,0 +1,55 @@
+# Logs
+*.log
+*.out
+*.err
+
+# Diretórios do Python
+__pycache__/
+*.py[cod]
+
+# Arquivos de ambiente virtual
+.venv/
+venv/
+
+# Dependências do Python
+env/
+*.egg-info/
+dist/
+build/
+
+# Configurações do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Configurações do IDE
+.vscode/
+.idea/
+*.swp
+
+# Arquivos de container
+*.tar
+*.img
+
+# Kubernetes
+cluster_files/minikube-linux-amd64  # Arquivo grande que causou erro
+*.kubeconfig
+
+# Arquivos binários e compilados
+*.o
+*.so
+*.a
+*.exe
+*.dll
+*.bin
+
+# Git
+.gitattributes
+
+# Arquivos grandes
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.iso
+
+cluster_files/minikube-linux-amd64
