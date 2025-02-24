@@ -1,0 +1,28 @@
+# Usa a imagem oficial do Python
+FROM python:3.9
+
+# Instala dependências do sistema para o ZeroMQ e outras ferramentas de rede
+RUN apt-get update && apt-get install -y \
+    libzmq3-dev \
+    dnsutils \
+    iputils-ping \
+    telnet \
+    net-tools \
+    && apt-get clean
+
+# Define o diretório de trabalho dentro do container
+WORKDIR /app
+
+# Atualiza o pip e instala as dependências do Python sem warnings
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir pyzmq
+
+# Copia o código para dentro do container
+COPY . /app
+
+# Cria um usuário root para rodar o container
+RUN useradd -m -u 0 -o rootuser
+USER rootuser
+
+# Comando para executar o programa
+CMD ["python", "node_cluster.py"]
