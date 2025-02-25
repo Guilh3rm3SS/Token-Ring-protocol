@@ -41,7 +41,7 @@ def client_receiver_thread():
     
     while True:
         msg = socket.recv_pyobj()
-        threading.Thread(target=save_on_buffer_thread, args=(msg,)).start()
+        threading.Thread(target=save_on_buffer_thread, args=(msg))
 
 # Enviar respostas aos clientes
 def client_sender_thread():
@@ -86,7 +86,7 @@ def token_receiver_thread():
                 threads = []
 
                 # Adiciona a thread principal (token[NODE_ID])
-                threads.append(threading.Thread(target=lambda: processed_buffer.put(request_processing_thread(token[NODE_ID]))))
+                threads.append(threading.Thread(target=request_processing_thread(token[NODE_ID])))
 
                 # Adiciona threads para cada item na received_buffer
                 while not received_buffer.empty():
@@ -133,13 +133,11 @@ def token_creator_thread():
         print(f"[Nó {NODE_ID}] Iniciou o token", flush=True)
         
 
-# Processa o pedido assínconamente
 def request_processing_thread(message):
     time.sleep(random.uniform(0.2, 1.0))
     print(f"[Nó {NODE_ID}] Requisição processada {message[1]}", flush=True)
-    return message
-
-#Salvar pedido no buffer assincronamente
+    processed_buffer.put(message)
+    
 def save_on_buffer_thread(message):
     if message is not None:
             print(f"[Nó {NODE_ID}] Recebeu pedido do cliente: {message[0]} | timestamp: {message[1]}", flush=True)
@@ -147,7 +145,7 @@ def save_on_buffer_thread(message):
         
     else: 
         print(f"[Nó {NODE_ID}] Erro ao receber pedido", flush=True)
-
+    
         
 
 # Criar e iniciar as threads

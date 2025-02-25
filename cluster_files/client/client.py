@@ -42,12 +42,17 @@ def receive_response():
     
     while True:
         response = socket.recv_pyobj()
-        print(f"[Cliente {NODE_ID}] Resposta recebida: {response[0]} concluído | timestamp: {response[1]}", flush=True)
+        if response is not None:
+            print(f"[Cliente {NODE_ID}] Resposta recebida: {response[0]} concluído | timestamp: {response[1]}", flush=True)
+        else:
+            print(f"[Cliente {NODE_ID}] Erro: resposta vazia ou conexão encerrada")
 
 # Criar e iniciar as threads para enviar e receber mensagens
 send_thread = threading.Thread(target=send_request, daemon=True)
 receive_thread = threading.Thread(target=receive_response, daemon=True)
 
+# Iniciar as threads
+time.sleep(5)
 send_thread.start()
 receive_thread.start()
 

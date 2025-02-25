@@ -46,10 +46,6 @@ spec:
       protocol: TCP
       port: 7000
       targetPort: 7000
-    - name: client-send-port
-      protocol: TCP
-      port: 7100
-      targetPort: 7100
   clusterIP: None  # Sem IP atribuído, para serviços headless
 ---
 # StatefulSet para os clientes
@@ -92,6 +88,6 @@ spec:
   ports:
     - name: client-port
       protocol: TCP
-      port: 8000
-      targetPort: 8000
+      port: 7000
+      targetPort: 7000
   clusterIP: None  # Sem IP atribuído, para serviços headless
