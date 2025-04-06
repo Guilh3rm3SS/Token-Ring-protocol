@@ -91,3 +91,53 @@ spec:
       port: 7000
       targetPort: 7000
   clusterIP: None  # Sem IP atribuído, para serviços headless
+
+
+# StatefulSet para os stores
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: store-node
+spec:
+  serviceName: "store-node-service"  # Nome do serviço associado ao StatefulSet
+  replicas: 5  # Número de réplicas (um pod para cada nó no cluster)
+  selector:
+    matchLabels:
+      app: store-node
+  template:
+    metadata:
+      labels:
+        app: store-node
+    spec:
+      containers:
+      - name: store-node
+        image: guilhermess03/token-ring-python:latest  # Imagem dos nós do cluster
+        ports:
+        - containerPort: 6000  # Porta para comunicação entre os nós
+        - containerPort: 7000  # Porta para comunicação com os clientes
+        env:
+        - name: STORE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name  # Pega o nome do pod (como cluster-node-0, cluster-node-1, etc.)
+      hostname: "$(POD_NAME)"  # O hostname de cada Pod será o seu nome
+      subdomain: "store-node-service"  # Nome do serviço headless
+---
+# Service para os nós do store
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-node-service
+spec:
+  selector:
+    app: store-node
+  ports:
+    - name: store-port
+      protocol: TCP
+      port: 6000
+      targetPort: 6000
+    - name: sync-receive-port
+      protocol: TCP
+      port: 7000
+      targetPort: 7000
+  clusterIP: None  # Sem IP atribuído, para serviços headless

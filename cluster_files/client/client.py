@@ -30,7 +30,7 @@ def send_request():
     while True:
         count += 1
         timestamp = int(time.time() * 1000)  # timestamp em milissegundos
-        msg = (f"Pedido {count} cliente {NODE_ID}", timestamp)  # inclui o timestamp na mensagem
+        msg = (f"Pedido {count} cliente {NODE_ID}", timestamp, NODE_ID, count)  # inclui o timestamp na mensagem
         socket.send_pyobj(msg)
         print(f"[Cliente {NODE_ID}] Enviou: pedido {count} | timestamp: {msg[1]}", flush=True)
         time.sleep(3)

@@ -30,8 +30,11 @@ CLIENT_SEND = f"tcp://client-node-{NODE_ID}.client-service.default.svc.cluster.l
 
 # Contexto do ZeroMQ
 context = zmq.Context()
+
 received_buffer = queue.Queue()
 processed_buffer = queue.Queue()
+
+m
 
 
 #  Receber pedidos dos clientes
