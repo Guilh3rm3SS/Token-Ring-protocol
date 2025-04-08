@@ -1,61 +1,77 @@
-import re
-import socket
-import threading
 import zmq
+import threading
 import time
+import os
+from datetime import datetime
 
-# Configuração do cliente
-def get_pod_id():
-    hostname = socket.gethostname()  # Obtém o nome do host (nome do pod)
-    match = re.search(r'client-node-(\d+)', hostname)  # Captura o número após "cluster-node-"
-    return int(match.group(1)) if match else -1  # Retorna o número extraído ou -1 se não encontrar
 
-NODE_ID = get_pod_id()  # ID do nó atual
+NODE_ID = int(os.getenv("NODE_ID", -1))
 
-CLIENT_PORT = 7000  # Porta base para comunicação com clientes
+CLIENT_PORT = 7000
 NODE_PORT = 7000
 
-CLIENT_RECEIVE = f"tcp://client-node-{NODE_ID}.client-service.default.svc.cluster.local:{CLIENT_PORT}"
+CLIENT_RECEIVE = f"tcp://*:{CLIENT_PORT + NODE_ID}"
+CLIENT_SEND = f"tcp://cluster-node-{NODE_ID}:{CLIENT_PORT + NODE_ID}"
 
-CLIENT_SEND = f"tcp://cluster-node-{NODE_ID}.cluster-node-service.default.svc.cluster.local:{CLIENT_PORT}"
-
-# Contexto do ZeroMQ
 context = zmq.Context()
 
-# Enviar pedido para o nó
-def send_request():
-    socket = context.socket(zmq.PUSH)
-    socket.connect(CLIENT_SEND)  # Conecta ao nó (portas definidas no nó)
-    count = 0
-    while True:
-        count += 1
-        timestamp = int(time.time() * 1000)  # timestamp em milissegundos
-        msg = (f"Pedido {count} cliente {NODE_ID}", timestamp, NODE_ID, count)  # inclui o timestamp na mensagem
-        socket.send_pyobj(msg)
-        print(f"[Cliente {NODE_ID}] Enviou: pedido {count} | timestamp: {msg[1]}", flush=True)
-        time.sleep(3)
+confirmation_event = threading.Event()
+message_lock = threading.Lock()
+last_message = None
+timeout = 1000000000  # segundos para timeout
 
-#  Receber resposta do nó
+def send_request():
+    global last_message
+    socket = context.socket(zmq.PUSH)
+    socket.connect(CLIENT_SEND)
+    count = 0
+
+    while True:
+        with message_lock:
+            count += 1
+            timestamp = int(time.time() * 1000)
+            last_message = (f"Pedido {count} cliente {NODE_ID}", timestamp, NODE_ID, count)
+
+        while True:
+            # Envia mensagem
+            socket.send_pyobj(last_message)
+            hora_atual = datetime.now().strftime("%H:%M:%S")
+            print(f"\033[94m[{hora_atual}] [Cliente {NODE_ID}] 📤 Enviou: pedido {count} | timestamp: {last_message[1]}\033[0m", flush=True)
+
+            # Aguarda confirmação com timeout
+            if confirmation_event.wait(timeout):
+                # Confirmação recebida
+                confirmation_event.clear()
+                break
+            else:
+                # Timeout: reenviar
+                hora_atual = datetime.now().strftime("%H:%M:%S")
+                print(f"\033[93m[{hora_atual}] [Cliente {NODE_ID}] ⏰ Timeout! Reenviando pedido {count}\033[0m", flush=True)
+
 def receive_response():
     socket = context.socket(zmq.PULL)
-    socket.bind(CLIENT_RECEIVE)  # Conecta ao nó (respostas serão enviadas para essa porta)
-    
+    socket.bind(CLIENT_RECEIVE)
+
+    global last_message
     while True:
         response = socket.recv_pyobj()
         if response is not None:
-            print(f"[Cliente {NODE_ID}] Resposta recebida: {response[0]} concluído | timestamp: {response[1]}", flush=True)
+            with message_lock:
+                # Checa se a resposta é para o último pedido enviado
+                if response[3] == last_message[3]:
+                    hora_atual = datetime.now().strftime("%H:%M:%S")
+                    print(f"\033[92m[{hora_atual}] [Cliente {NODE_ID}] ✅ Resposta recebida: {response[0]} concluído | timestamp: {response[1]}\033[0m", flush=True)
+                    confirmation_event.set()
         else:
-            print(f"[Cliente {NODE_ID}] Erro: resposta vazia ou conexão encerrada")
+            print(f"\033[91m[Cliente {NODE_ID}] ❌ Erro: resposta vazia ou conexão encerrada\033[0m", flush=True)
 
-# Criar e iniciar as threads para enviar e receber mensagens
+# Iniciar threads
 send_thread = threading.Thread(target=send_request, daemon=True)
 receive_thread = threading.Thread(target=receive_response, daemon=True)
 
-# Iniciar as threads
-time.sleep(5)
+time.sleep(10)  # Espera inicial
 send_thread.start()
 receive_thread.start()
 
-# Mantém o programa rodando
 send_thread.join()
 receive_thread.join()

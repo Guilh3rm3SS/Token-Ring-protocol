@@ -1,1 +1,16 @@
 Rodar cluster: kubectl apply -f deployment.yaml
+
+--- 
+comandos do Docker
+
+Sempre que for modificar o arquivo,
+abre o docker e apague o container e
+as imagens (todas do projeto, node-cluster, client etc)
+
+Inicia projeto e roda:
+docker-compose up
+
+Ver as mensagens de servicos especificos (nome no Docker-compose)
+    Modifica o nome (cluster-store-0) por outro se quiser
+docker compose logs -f cluster-store-0 cluster-store-1 cluster-store-2
+

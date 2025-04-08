@@ -25,4 +25,5 @@ RUN useradd -m -u 0 -o rootuser
 USER rootuser
 
 # Comando para executar o programa
-CMD ["python", "clusterstore.py"]
+CMD ["bash", "-c", "python cluster_store.py"]
+

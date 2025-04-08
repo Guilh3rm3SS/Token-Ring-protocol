@@ -1,0 +1,109 @@
+version: "3.8"
+
+services:
+  # Nós do Cluster Sync
+  cluster-node-0:
+    build:
+      context: ./nodes
+      dockerfile: dockerfile
+    container_name: cluster-node-0
+    environment:
+      - NODE_ID=0
+
+  cluster-node-1:
+    build:
+      context: ./nodes
+      dockerfile: dockerfile
+    container_name: cluster-node-1
+    environment:
+      - NODE_ID=1
+
+  cluster-node-2:
+    build:
+      context: ./nodes
+      dockerfile: dockerfile
+    container_name: cluster-node-2
+    environment:
+      - NODE_ID=2
+
+  cluster-node-3:
+    build:
+      context: ./nodes
+      dockerfile: dockerfile
+    container_name: cluster-node-3
+    environment:
+      - NODE_ID=3
+
+  cluster-node-4:
+    build:
+      context: ./nodes
+      dockerfile: dockerfile
+    container_name: cluster-node-4
+    environment:
+      - NODE_ID=4
+
+  # Clientes
+  client-node-0:
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client-node-0
+    environment:
+      - NODE_ID=0
+
+  client-node-1:
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client-node-1
+    environment:
+      - NODE_ID=1
+
+  client-node-2:
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client-node-2
+    environment:
+      - NODE_ID=2
+
+  client-node-3:
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client-node-3
+    environment:
+      - NODE_ID=3
+
+  client-node-4:
+    build:
+      context: ./client
+      dockerfile: dockerfile
+    container_name: client-node-4
+    environment:
+      - NODE_ID=4
+
+  # Cluster Store - 3 nós
+  cluster-store-0:
+    build:
+      context: ./store
+      dockerfile: dockerfile
+    container_name: cluster-store-0
+    environment:
+      - STORE_ID=0
+
+  cluster-store-1:
+    build:
+      context: ./store
+      dockerfile: dockerfile
+    container_name: cluster-store-1
+    environment:
+      - STORE_ID=1
+
+  cluster-store-2:
+    build:
+      context: ./store
+      dockerfile: dockerfile
+    container_name: cluster-store-2
+    environment:
+      - STORE_ID=2
