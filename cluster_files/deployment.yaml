@@ -20,7 +20,8 @@ spec:
         ports:
         - containerPort: 6000  # Porta para comunicação entre os nós
         - containerPort: 7000  # Porta para comunicação com os clientes
-        - containerPort: 7100  # Porta adicional para comunicação com clientes
+        - containerPort: 8000  # Porta adicional para verificação de nós ativos
+        - containerPort: 9000  # Porta adicional para verificação de nós ativos
         env:
         - name: NODE_ID
           valueFrom:
@@ -46,6 +47,14 @@ spec:
       protocol: TCP
       port: 7000
       targetPort: 7000
+      name: heartbeat-receive-port
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+      name: store-receive-port
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
   clusterIP: None  # Sem IP atribuído, para serviços headless
 ---
 # StatefulSet para os clientes
@@ -93,14 +102,14 @@ spec:
   clusterIP: None  # Sem IP atribuído, para serviços headless
 
 
-# StatefulSet para os stores
+# StatefulSet para os nós do clusterstore
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: store-node
 spec:
-  serviceName: "store-node-service"  # Nome do serviço associado ao StatefulSet
-  replicas: 5  # Número de réplicas (um pod para cada nó no cluster)
+  serviceName: "store-service"  # Nome do serviço associado ao StatefulSet
+  replicas: 3  # Número de réplicas (um pod para cada nó no cluster)
   selector:
     matchLabels:
       app: store-node
@@ -111,33 +120,28 @@ spec:
     spec:
       containers:
       - name: store-node
-        image: guilhermess03/token-ring-python:latest  # Imagem dos nós do cluster
+        image: guilhermess03/store-python:latest  # Imagem dos nós do cluster
         ports:
-        - containerPort: 6000  # Porta para comunicação entre os nós
-        - containerPort: 7000  # Porta para comunicação com os clientes
+        - containerPort: 9000  
         env:
-        - name: STORE_ID
+        - name: NODE_ID
           valueFrom:
             fieldRef:
               fieldPath: metadata.name  # Pega o nome do pod (como cluster-node-0, cluster-node-1, etc.)
       hostname: "$(POD_NAME)"  # O hostname de cada Pod será o seu nome
-      subdomain: "store-node-service"  # Nome do serviço headless
+      subdomain: "store-service"  # Nome do serviço headless
 ---
-# Service para os nós do store
+# Service para os nós do clusterstore
 apiVersion: v1
 kind: Service
 metadata:
-  name: store-node-service
+  name: store-service
 spec:
   selector:
     app: store-node
   ports:
     - name: store-port
       protocol: TCP
-      port: 6000
-      targetPort: 6000
-    - name: sync-receive-port
-      protocol: TCP
-      port: 7000
-      targetPort: 7000
+      port: 9000
+      targetPort: 9000
   clusterIP: None  # Sem IP atribuído, para serviços headless

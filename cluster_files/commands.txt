@@ -1,1 +1,15 @@
 Rodar cluster: kubectl apply -f deployment.yaml
+
+guilhermess03/token-ring-python:latest
+
+docker build -t guilhermess03/token-ring-python:latest ./nodes
+docker push guilhermess03/token-ring-python:latest 
+kubectl apply -f deployment.yaml
+kubectl delete pods --all -n default
+
+docker build -t guilhermess03/token-ring-python:latest ./nodes
+docker build -t guilhermess03/store-python:latest ./store
+docker build -t guilhermess03/client:latest ./client
+docker push guilhermess03/token-ring-python:latest
+docker push guilhermess03/store-python:lates
+docker push guilhermess03/client:latest
